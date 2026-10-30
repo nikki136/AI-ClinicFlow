@@ -14,9 +14,10 @@ AI ClinicFlow is a demonstration clinic-administration application. It uses Reac
 This is an educational prototype, not a clinical decision-support system or production healthcare product. Use fictional data only. It does not diagnose or recommend treatment. AI-generated classifications and replies must be reviewed by clinic staff. Do not enter real patient information.
 
 ## Requirements
-- Python 3.10+
-- Node.js 18+
-- Gemini API key from https://aistudio.google.com/apikey
+Python 3.10+
+Node.js 20.19+ or 22.12+
+Gemini API key
+
 
 ## 1. Start the backend
 
@@ -28,6 +29,7 @@ python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 Copy-Item .env.example .env
+python app.py
 ```
 
 Edit `backend/.env` and add your Gemini API key:
