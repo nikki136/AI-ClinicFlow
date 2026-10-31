@@ -35,7 +35,15 @@ function App() {
   const [notice, setNotice] = useState('');
   const [search, setSearch] = useState('');
   const [enquiryForm, setEnquiryForm] = useState({ patient_name: '', message: '' });
-  const [appointmentForm, setAppointmentForm] = useState({ patient_name: '', appointment_date: '', appointment_time: '', reason: '' });
+  const [appointmentForm, setAppointmentForm] = useState({
+  patient_name: '',
+  email: '',
+  phone: '',
+  department: '',
+  appointment_date: '',
+  appointment_time: '',
+  reason: ''
+});
   const [lastAnalysis, setLastAnalysis] = useState(null);
 
   async function refresh() {
@@ -62,23 +70,37 @@ function App() {
     } catch (err) { setError(err.message); }
     finally { setBusy(false); }
   }
+async function submitAppointment(event) {
+  event.preventDefault();
+  setBusy(true);
+  setError('');
+  setNotice('');
 
-  async function submitAppointment(event) {
-    event.preventDefault(); setBusy(true); setError(''); setNotice('');
-    try {
-      await api('/appointments', { method: 'POST', body: JSON.stringify(appointmentForm) });
-      setAppointmentForm({ patient_name: '', appointment_date: '', appointment_time: '', reason: '' });
-      setNotice('Appointment added successfully.');
-      await refresh();
-    } catch (err) { setError(err.message); }
-    finally { setBusy(false); }
+  try {
+    await api('/appointments', {
+      method: 'POST',
+      body: JSON.stringify(appointmentForm)
+    });
+
+    setAppointmentForm({
+      patient_name: '',
+      email: '',
+      phone: '',
+      department: '',
+      appointment_date: '',
+      appointment_time: '',
+      reason: ''
+    });
+
+    setNotice('Appointment added successfully.');
+    await refresh();
+
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setBusy(false);
   }
-
-  async function updateEnquiry(id, status) {
-    try { await api(`/enquiries/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }); await refresh(); }
-    catch (err) { setError(err.message); }
-  }
-
+}
   async function updateAppointment(id, status) {
     try { await api(`/appointments/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }); await refresh(); }
     catch (err) { setError(err.message); }
@@ -143,11 +165,62 @@ function App() {
         {section === 'appointments' && <div className="content-grid appointment-grid">
           <section className="panel"><div className="panel-heading"><div><h2>New appointment</h2><p>Add an appointment to the clinic schedule.</p></div><span className="section-icon"><Plus size={18} /></span></div>
             <form className="form-stack" onSubmit={submitAppointment}>
-              <label>Patient name<input required maxLength="100" placeholder="e.g. Alex Morgan" value={appointmentForm.patient_name} onChange={e => setAppointmentForm({ ...appointmentForm, patient_name: e.target.value })} /></label>
-              <div className="two-fields"><label>Date<input required type="date" min={new Date().toISOString().slice(0, 10)} value={appointmentForm.appointment_date} onChange={e => setAppointmentForm({ ...appointmentForm, appointment_date: e.target.value })} /></label><label>Time<input required type="time" value={appointmentForm.appointment_time} onChange={e => setAppointmentForm({ ...appointmentForm, appointment_time: e.target.value })} /></label></div>
-              <label>Reason / note <span className="optional">(optional)</span><textarea rows="3" maxLength="300" placeholder="Administrative note only" value={appointmentForm.reason} onChange={e => setAppointmentForm({ ...appointmentForm, reason: e.target.value })} /></label>
-              <button className="primary-button" disabled={busy}>{busy ? <LoaderCircle className="spin" size={17} /> : <Plus size={17} />} Add appointment</button>
-            </form>
+  <label>Patient name
+    <input required maxLength="100" placeholder="e.g. Rahul Kumar"
+      value={appointmentForm.patient_name}
+      onChange={e => setAppointmentForm({ ...appointmentForm, patient_name: e.target.value })} />
+  </label>
+
+  <label>Email address
+    <input required type="email" placeholder="rahul@gmail.com"
+      value={appointmentForm.email}
+      onChange={e => setAppointmentForm({ ...appointmentForm, email: e.target.value })} />
+  </label>
+
+  <label>Phone number
+    <input required type="tel" pattern="[0-9]{10}" maxLength="10" placeholder="10-digit mobile number"
+      value={appointmentForm.phone}
+      onChange={e => setAppointmentForm({ ...appointmentForm, phone: e.target.value })} />
+  </label>
+
+  <label>Department
+    <select required value={appointmentForm.department}
+      onChange={e => setAppointmentForm({ ...appointmentForm, department: e.target.value })}>
+      <option value="">Select department</option>
+      <option value="Cardiology">Cardiology</option>
+      <option value="Neurology">Neurology</option>
+      <option value="General Medicine">General Medicine</option>
+      <option value="Orthopedics">Orthopedics</option>
+      <option value="Dermatology">Dermatology</option>
+      <option value="Pediatrics">Pediatrics</option>
+      <option value="Gynecology">Gynecology</option>
+    </select>
+  </label>
+
+  <div className="two-fields">
+    <label>Date
+      <input required type="date" min={new Date().toISOString().slice(0, 10)}
+        value={appointmentForm.appointment_date}
+        onChange={e => setAppointmentForm({ ...appointmentForm, appointment_date: e.target.value })} />
+    </label>
+    <label>Time
+      <input required type="time"
+        value={appointmentForm.appointment_time}
+        onChange={e => setAppointmentForm({ ...appointmentForm, appointment_time: e.target.value })} />
+    </label>
+  </div>
+
+  <label>Reason / note <span className="optional">(optional)</span>
+    <textarea rows="3" maxLength="300" placeholder="Administrative note only"
+      value={appointmentForm.reason}
+      onChange={e => setAppointmentForm({ ...appointmentForm, reason: e.target.value })} />
+  </label>
+
+  <button className="primary-button" disabled={busy}>
+    {busy ? <LoaderCircle className="spin" size={17} /> : <Plus size={17} />}
+    Add appointment
+  </button>
+</form>
           </section>
           <section className="panel"><div className="panel-heading"><div><h2>Appointment schedule</h2><p>{appointments.length} appointments</p></div></div><AppointmentTable items={appointments} onUpdate={updateAppointment} /></section>
         </div>}
@@ -157,10 +230,58 @@ function App() {
     </main>
   </div>;
 }
-
 function AppointmentTable({ items, onUpdate }) {
-  if (!items.length) return <div className="empty-state">No appointments added yet.</div>;
-  return <div className="table-wrap"><table><thead><tr><th>Patient</th><th>Date</th><th>Time</th><th>Note</th><th>Status</th><th>Update</th></tr></thead><tbody>{items.map(item => <tr key={item.id}><td><b>{item.patient_name}</b><small>#{item.id}</small></td><td>{item.appointment_date}</td><td>{item.appointment_time}</td><td>{item.reason || '—'}</td><td><span className="status">{item.status}</span></td><td><select value={item.status} onChange={e => onUpdate(item.id, e.target.value)}><option>Scheduled</option><option>Completed</option><option>Cancelled</option></select></td></tr>)}</tbody></table></div>;
+  if (!items.length) {
+    return <div className="empty-state">No appointments added yet.</div>;
+  }
+
+  return (
+    <div className="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Department</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Note</th>
+            <th>Status</th>
+            <th>Update</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {items.map(item => (
+            <tr key={item.id}>
+              <td>
+                <b>{item.patient_name}</b>
+                <small>#{item.id}</small>
+              </td>
+              <td>{item.email || '—'}</td>
+              <td>{item.phone || '—'}</td>
+              <td>{item.department || '—'}</td>
+              <td>{item.appointment_date}</td>
+              <td>{item.appointment_time}</td>
+              <td>{item.reason || '—'}</td>
+              <td><span className="status">{item.status}</span></td>
+              <td>
+                <select
+                  value={item.status}
+                  onChange={e => onUpdate(item.id, e.target.value)}
+                >
+                  <option>Scheduled</option>
+                  <option>Completed</option>
+                  <option>Cancelled</option>
+                </select>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 export default App;

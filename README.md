@@ -37,7 +37,7 @@ Edit `backend/.env` and add your Gemini API key:
 ```env
 GEMINI_API_KEY=your_actual_key
 GEMINI_MODEL=gemini-2.5-flash
-FRONTEND_ORIGIN=http://localhost:5173
+FRONTEND_ORIGIN=http://localhost:5174
 ```
 
 Run:
@@ -58,7 +58,7 @@ npm install
 npm run dev
 ```
 
-Open the Vite URL shown in the terminal, normally `http://localhost:5173`.
+Open the Vite URL shown in the terminal, normally `http://localhost:5174`.
 
 ## API endpoints
 - `GET /` - API status
